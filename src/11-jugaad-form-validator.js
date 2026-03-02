@@ -62,5 +62,104 @@
  *   // => { isValid: false, errors: { name: "...", email: "...", ... } }
  */
 export function validateForm(formData) {
-  // Your code here
+  const errors = {};
+
+  if (typeof formData !== "object" || formData === null) {
+    return { isValid: false, errors: { form: "Invalid form data" } };
+  }
+
+  const {
+    name,
+    email,
+    phone,
+    age,
+    pincode,
+    state,
+    agreeTerms
+  } = formData;
+
+  // 1️. Name
+  if (
+    typeof name !== "string" ||
+    name.trim().length < 2 ||
+    name.trim().length > 50
+  ) {
+    errors.name = "Name must be 2-50 characters";
+  }
+
+  // 2️.Email
+  if (typeof email !== "string") {
+    errors.email = "Invalid email format";
+  } else {
+    const atIndex = email.indexOf("@");
+    const lastAtIndex = email.lastIndexOf("@");
+    const dotIndex = email.indexOf(".", atIndex + 1);
+
+    if (
+      atIndex === -1 ||
+      atIndex !== lastAtIndex || // more than one @
+      dotIndex === -1 ||
+      dotIndex <= atIndex + 1
+    ) {
+      errors.email = "Invalid email format";
+    }
+  }
+
+  // 3️.Phone
+  if (typeof phone !== "string" || phone.length !== 10) {
+    errors.phone = "Invalid Indian phone number";
+  } else {
+    const startsValid = ["6", "7", "8", "9"].includes(phone.charAt(0));
+    const allDigits = phone.split("").every(ch => ch >= "0" && ch <= "9");
+
+    if (!startsValid || !allDigits) {
+      errors.phone = "Invalid Indian phone number";
+    }
+  }
+
+  // 4️. Age
+  let parsedAge = age;
+
+  if (typeof age === "string") {
+    parsedAge = parseInt(age, 10);
+  }
+
+  if (
+    typeof parsedAge !== "number" ||
+    isNaN(parsedAge) ||
+    !Number.isInteger(parsedAge) ||
+    parsedAge < 16 ||
+    parsedAge > 100
+  ) {
+    errors.age = "Age must be an integer between 16 and 100";
+  }
+
+  // 5️ Pincode
+  if (typeof pincode !== "string" || pincode.length !== 6) {
+    errors.pincode = "Invalid Indian pincode";
+  } else {
+    const notStartingZero = !pincode.startsWith("0");
+    const allDigits = pincode.split("").every(ch => ch >= "0" && ch <= "9");
+
+    if (!notStartingZero || !allDigits) {
+      errors.pincode = "Invalid Indian pincode";
+    }
+  }
+
+  // 6️ State (optional chaining + nullish coalescing)
+  const safeState = state?.trim() ?? "";
+
+  if (typeof safeState !== "string" || safeState === "") {
+    errors.state = "State is required";
+  }
+
+  // 7️ Agree Terms
+  if (!Boolean(agreeTerms)) {
+    errors.agreeTerms = "Must agree to terms";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
 }
